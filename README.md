@@ -1,6 +1,9 @@
 blink(1)  
 ========
 
+Customized for ATTiny45 // OriginalSource runs only on ATTiny85 !
+-----------------------------------------------------------------
+
 "blink(1) is a super status light: it packs three dimensions of information 
 (color, brightness and pattern) into a single tiny package that fits into 
 any USB port on nearly every device. It makes it incredibly easy to connect 

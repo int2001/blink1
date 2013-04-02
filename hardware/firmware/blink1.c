@@ -318,19 +318,6 @@ void handleMessage(void)
         memcpy( &pattern[p], &ptmp, sizeof(patternline_t) );
         eeprom_write_block( &pattern[p], &ee_pattern[p], sizeof(patternline_t));
     }
-    // read color pattern entry - {'R', 0,0,0, 0,0, p,0}
-    //
-    else if( cmd == 'R' ) {
-        uint8_t p = msgbufp[6];
-        if( p >= patt_max ) p = 0;
-        patternline_t ptmp ;
-        eeprom_read_block( &ptmp, &ee_pattern[p], sizeof(patternline_t));
-        msgbuf[2] = ptmp.color.r;
-        msgbuf[3] = ptmp.color.g;
-        msgbuf[4] = ptmp.color.b;
-        msgbuf[5] = (ptmp.dmillis >> 8);
-        msgbuf[6] = (ptmp.dmillis & 0xff);
-    }
     // read eeprom byte - { 'e', addr, 0,0, 0,0,0,0}
     //
     else if( cmd == 'e' ) { 
@@ -349,17 +336,6 @@ void handleMessage(void)
     }
     // servermode tickle - {'D', {1/0},th,tl,  0,0, 0,0 }
     //
-    else if( cmd == 'D' ) {
-        uint8_t serverdown_on = msgbufp[1];
-        uint16_t t = ((uint16_t)msgbufp[2] << 8) | msgbufp[3]; 
-        if( serverdown_on ) { 
-            serverdown_millis = t;
-            serverdown_update_next = millis() + (t*10);
-        } else {
-            serverdown_millis = 0; // turn off serverdown mode
-        }
-        off();
-    }
     // version info
     else if( cmd == 'v' ) { 
         msgbufp[2] = blink1_ver_major;
@@ -409,10 +385,35 @@ static void timerInit(void)
 
 // ------------------------------------------------------------------------- 
 // -------------------------- main logic -----------------------------------
-// -------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 
 //
 static void updateLEDs(void)
+{
+    uint32_t now = millis();
+
+    // update LED for lading every led_update_millis
+    if( (long)(now - led_update_next) > 0 ) { 
+        led_update_next += led_update_millis;
+        rgb_updateCurrent();
+        
+    }
+    // playing light pattern
+    if( playing ) {
+        if( (long)(now - pattern_update_next) > 0  ) {
+            cplay = pattern[playpos].color;
+            tplay = pattern[playpos].dmillis;
+            rgb_setDest( &cplay, tplay );
+            playpos++;
+            if( playpos == patt_max ) playpos = 0; // loop the pattern
+            pattern_update_next += tplay*10;
+        }
+    }
+    
+}
+
+//
+static void updateLEDs_dep(void)
 {
     uint32_t now = millis();
 
@@ -460,8 +461,6 @@ static void updateLEDs(void)
     }
     
 }
-
-
 //
 int main(void)
 {

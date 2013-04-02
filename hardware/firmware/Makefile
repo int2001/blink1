@@ -13,8 +13,8 @@
 
 TARGET=blink1
 
-MCU=attiny85
-#MCU=attiny45
+#MCU=attiny85
+MCU=attiny45
 # PLL
 F_CPU=16500000
 # non-PLL
@@ -38,7 +38,8 @@ AVRDUDE = avrdude -c avrispmkii -P usb -p $(MCU)
 # to an USB to serial converter to a Mac running Mac OS X.
 # Choose your favorite programmer and interface.
 
-COMPILE = avr-gcc -std=gnu99 -Wall -Os -Iusbdrv -I. -mmcu=$(MCU) -DF_CPU=$(F_CPU) -DDEBUG_LEVEL=0
+COMPILE = avr-gcc -std=gnu99 -Wall -Os -Iusbdrv -I. -mmcu=$(MCU) -DF_CPU=$(F_CPU) -DDEBUG_LEVEL=0 
+#-fno-move-loop-invariants -fno-inline-small-functions -mcall-prologues -fno-tree-scev-cprop -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 # NEVER compile the final product with debugging! Any debug output will
 # distort timing so that the specs can't be met.
 
